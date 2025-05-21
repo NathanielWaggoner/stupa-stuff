@@ -47,19 +47,34 @@ This document outlines the core infrastructure using Firebase as our backend ser
 ```
 /src
 ├── /app
-│   ├── /components           # Reusable UI components
-│   ├── /screens             # Screen components
-│   ├── /navigation          # Navigation configuration
-│   ├── /services           
-│   │   ├── firebase.ts      # Firebase configuration
-│   │   ├── auth.service.ts  # Auth methods
-│   │   └── storage.service.ts
-│   ├── /store              # Redux store
-│   │   ├── /slices
-│   │   └── store.ts
-│   └── /types              # TypeScript definitions
-└── App.tsx                 # Root component
+│   ├── /(tabs)              # Tab-based navigation screens
+│   │   ├── map.tsx         # Main map screen
+│   │   ├── prayer.tsx      # Prayer screen
+│   │   ├── profile.tsx     # User profile screen
+│   │   └── _layout.tsx     # Tab navigation layout
+│   ├── _layout.tsx         # Root layout
+│   └── +not-found.tsx      # 404 page
+├── /components             # Reusable UI components
+├── /services              # Service integrations
+├── /store                # State management
+├── /hooks               # Custom React hooks
+├── /constants           # App constants
+└── /assets             # Static assets
 ```
+
+## Navigation Structure
+
+The app uses Expo Router for navigation, implementing a tab-based navigation system with the following structure:
+
+- **Map Tab**: Main map interface for viewing and interacting with stupas
+- **Prayer Tab**: Dedicated space for prayer-related features
+- **Profile Tab**: User profile and settings
+
+The navigation is implemented using the new Expo Router file-based routing system, which provides:
+- Type-safe routing
+- Deep linking support
+- Automatic handling of navigation state
+- Built-in 404 handling
 
 ## Data Model
 
@@ -167,18 +182,27 @@ service firebase.storage {
 
 ```json
 {
-  // React Native core
+  // Core
+  "expo": "^49.x",
+  "expo-router": "^2.x",
+  "react-native": "0.72.x",
+  "react": "18.2.0",
+  
+  // Navigation
   "@react-navigation/native": "^6.x",
+  
+  // State Management
   "@reduxjs/toolkit": "^1.x",
+  
+  // Storage
   "@react-native-async-storage/async-storage": "^1.x",
-  "expo": "^48.x",
   
   // Firebase
-  "firebase": "^9.x",
-  "@react-native-firebase/app": "^17.x",
-  "@react-native-firebase/auth": "^17.x",
-  "@react-native-firebase/firestore": "^17.x",
-  "@react-native-firebase/storage": "^17.x"
+  "firebase": "^10.x",
+  "@react-native-firebase/app": "^18.x",
+  "@react-native-firebase/auth": "^18.x",
+  "@react-native-firebase/firestore": "^18.x",
+  "@react-native-firebase/storage": "^18.x"
 }
 ```
 

@@ -12,13 +12,15 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.stupamap.app",
       "config": {
-        "usesNonExemptEncryption": false
+        "usesNonExemptEncryption": false,
+        "googleMapsApiKey": "YOUR_IOS_GOOGLE_MAPS_API_KEY"
       },
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "StupaMap needs access to location to show nearby stupas and your current location on the map.",
         "NSLocationAlwaysUsageDescription": "StupaMap needs access to location to show nearby stupas and your current location on the map.",
         "UIBackgroundModes": ["location"]
-      }
+      },
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
@@ -32,9 +34,10 @@
       ],
       "config": {
         "googleMaps": {
-          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+          "apiKey": "YOUR_ANDROID_GOOGLE_MAPS_API_KEY"
         }
       },
+      "googleServicesFile": "./google-services.json",
       "edgeToEdgeEnabled": true
     },
     "web": {
@@ -58,11 +61,7 @@
         {
           "locationAlwaysAndWhenInUsePermission": "StupaMap needs access to location to show nearby stupas and your current location on the map."
         }
-      ],
-      "@react-native-firebase/app",
-      "@react-native-firebase/auth",
-      "@react-native-firebase/firestore",
-      "@react-native-firebase/storage"
+      ]
     ],
     "experiments": {
       "typedRoutes": true

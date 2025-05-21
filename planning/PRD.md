@@ -118,7 +118,7 @@ I want to tap on a stupa to view more information, videos, and prayers.
 
 I want to add my own stupa markers with personal or discovered stupas.
 
-I want to share a stupa I’ve added with my friends or community.
+I want to share a stupa I've added with my friends or community.
 
 I want to offer prayers and see how many others have done the same.
 
@@ -128,30 +128,25 @@ I want to upload or link to a video that relates to a stupa.
 
 I want to edit or delete my contributions if needed.
 
-📆 MVP Roadmap (Milestone-Based)
-Phase 1 – Map & Marker Core
-Interactive map with fixed set of stupa markers
+📆 MVP Roadmap (Current Status)
 
-Marker detail view with static info
+✅ Phase 1 – Map & Marker Core
+- [x] Interactive map with fixed set of stupa markers
+- [x] Basic marker detail view
+- [x] Tab-based navigation structure
 
-Phase 2 – User-Generated Content
-Ability to add stupa markers
+🔄 Phase 2 – User-Generated Content (In Progress)
+- [ ] Ability to add stupa markers
+- [ ] User accounts
+- [ ] Public/private sharing
 
-User accounts
+⏳ Phase 3 – Prayer & Video Features
+- [ ] Add/view prayers
+- [ ] Prayer count button
+- [ ] Add/view videos
 
-Public/private sharing
-
-Phase 3 – Prayer & Video Features
-Add/view prayers
-
-Prayer count button
-
-Add/view videos
-
-Phase 4 – Community & Moderation
-Flag/report content
-
-Admin moderation tools
-
-Enhanced sharing and discovery
+⏳ Phase 4 – Community & Moderation
+- [ ] Flag/report content
+- [ ] Admin moderation tools
+- [ ] Enhanced sharing and discovery
 

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "267622188653",
+    "project_id": "stupamap",
+    "storage_bucket": "stupamap.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:267622188653:android:82a54b97d56bf03630a164",
+        "android_client_info": {
+          "package_name": "com.stupamap.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBGfMRwn4yiNKsQxan-GHWbDKIoQXCgdU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

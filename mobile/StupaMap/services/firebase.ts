@@ -1,28 +1,33 @@
-import { initializeApp } from '@react-native-firebase/app';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
-import storage from '@react-native-firebase/storage';
+import { initializeApp } from '@firebase/app';
+import { getAuth, initializeAuth } from '@firebase/auth';
+import { getFirestore, enableIndexedDbPersistence } from '@firebase/firestore';
+import { getStorage } from '@firebase/storage';
 
 // Initialize Firebase
 const firebaseConfig = {
-  // TODO: Replace with your Firebase config
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || '',
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || '',
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || '',
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Enable Firestore offline persistence
-firestore().settings({
-  persistence: true,
-  cacheSizeBytes: firestore.CACHE_SIZE_UNLIMITED,
-});
+// Initialize services
+const auth = initializeAuth(app);
+const firestore = getFirestore(app);
+const storage = getStorage(app);
 
-// Enable Storage offline persistence
-storage().setMaxDownloadRetryTime(60 * 1000); // 1 minute
+// // Enable Firestore offline persistence
+// enableIndexedDbPersistence(firestore).catch((err) => {
+//   if (err.code === 'failed-precondition') {
+//     console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+//   } else if (err.code === 'unimplemented') {
+//     console.warn('The current browser does not support persistence.');
+//   }
+// });
 
 export { app, auth, firestore, storage }; 

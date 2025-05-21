@@ -4,40 +4,20 @@ import MapView, { Region, Marker, Callout } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
+import { stupaService } from '@/services/stupa.service';
+import { Stupa } from '@/store/slices/stupaSlice';
 
-// Mock data for testing
-const mockStupas = [
-  {
-    id: '1',
-    location: {
-      latitude: 27.7172,
-      longitude: 85.3240,
-    },
-    title: 'Boudhanath Stupa',
-    description: 'One of the largest stupas in the world',
-    prayerCount: 1234,
-  },
-  {
-    id: '2',
-    location: {
-      latitude: 27.7127,
-      longitude: 85.2905,
-    },
-    title: 'Swayambhunath Stupa',
-    description: 'Ancient religious architecture atop a hill',
-    prayerCount: 2345,
-  },
-];
-
-export default function MapScreen() {
+const MapScreen = () => {
   const [region, setRegion] = useState<Region>({
     latitude: 27.7172,
     longitude: 85.3240,
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   });
+  const [stupas, setStupas] = useState<Stupa[]>([]);
 
   useEffect(() => {
+    // Request location permissions
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status === 'granted') {
@@ -52,11 +32,21 @@ export default function MapScreen() {
     })();
   }, []);
 
+  useEffect(() => {
+    // Subscribe to stupas in the current region
+    const unsubscribe = stupaService.subscribeToStupasInRegion(region, (updatedStupas) => {
+      setStupas(updatedStupas);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [region]);
+
   const handleRegionChange = (newRegion: Region) => {
     setRegion(newRegion);
   };
 
-  const handleMarkerPress = (stupa: any) => {
+  const handleMarkerPress = (stupa: Stupa) => {
     router.push({
       pathname: '/stupa-details',
       params: { id: stupa.id }
@@ -84,7 +74,7 @@ export default function MapScreen() {
         showsUserLocation
         showsMyLocationButton
       >
-        {mockStupas.map((stupa) => (
+        {stupas.map((stupa) => (
           <Marker
             key={stupa.id}
             coordinate={{
@@ -108,7 +98,9 @@ export default function MapScreen() {
       </MapView>
     </View>
   );
-}
+};
+
+export default MapScreen;
 
 const styles = StyleSheet.create({
   container: {

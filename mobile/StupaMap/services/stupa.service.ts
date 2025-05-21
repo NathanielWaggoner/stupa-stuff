@@ -1,6 +1,7 @@
+import { collection, query, where, getDocs, addDoc, updateDoc, doc, onSnapshot, GeoPoint } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { firestore, storage } from './firebase';
 import { Stupa } from '@/store/slices/stupaSlice';
-import * as turf from '@turf/turf';
 
 class StupaService {
   async getStupasInRegion(region: {
@@ -19,11 +20,14 @@ class StupaService {
       ];
 
       // Query Firestore for stupas within the bounding box
-      const snapshot = await firestore()
-        .collection('stupas')
-        .where('location.latitude', '>=', bbox[1])
-        .where('location.latitude', '<=', bbox[3])
-        .get();
+      const stupasRef = collection(firestore, 'stupas');
+      const q = query(
+        stupasRef,
+        where('location.latitude', '>=', bbox[1]),
+        where('location.latitude', '<=', bbox[3])
+      );
+
+      const snapshot = await getDocs(q);
 
       // Filter results by longitude (Firestore can't query on multiple fields)
       return snapshot.docs
@@ -38,17 +42,52 @@ class StupaService {
     }
   }
 
+  subscribeToStupasInRegion(
+    region: {
+      latitude: number;
+      longitude: number;
+      latitudeDelta: number;
+      longitudeDelta: number;
+    },
+    callback: (stupas: Stupa[]) => void
+  ) {
+    const bbox = [
+      region.longitude - region.longitudeDelta,
+      region.latitude - region.latitudeDelta,
+      region.longitude + region.longitudeDelta,
+      region.latitude + region.latitudeDelta,
+    ];
+
+    const stupasRef = collection(firestore, 'stupas');
+    const q = query(
+      stupasRef,
+      where('location.latitude', '>=', bbox[1]),
+      where('location.latitude', '<=', bbox[3])
+    );
+
+    return onSnapshot(q, (snapshot) => {
+      const stupas = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() } as Stupa))
+        .filter(stupa => 
+          stupa.location.longitude >= bbox[0] && 
+          stupa.location.longitude <= bbox[2]
+        );
+      callback(stupas);
+    });
+  }
+
   async addStupa(stupa: Omit<Stupa, 'id'>): Promise<Stupa> {
     try {
-      const doc = await firestore().collection('stupas').add({
+      const docRef = await addDoc(collection(firestore, 'stupas'), {
         ...stupa,
+        location: new GeoPoint(stupa.location.latitude, stupa.location.longitude),
         createdAt: new Date().toISOString(),
         prayerCount: 0,
         lastPrayerAt: new Date().toISOString(),
       });
 
       return {
-        id: doc.id,
+        id: docRef.id,
         ...stupa,
       };
     } catch (error) {
@@ -59,9 +98,11 @@ class StupaService {
 
   async uploadStupaVideo(stupaId: string, videoUri: string): Promise<string> {
     try {
-      const reference = storage().ref(`stupas/${stupaId}/${Date.now()}.mp4`);
-      await reference.putFile(videoUri);
-      return await reference.getDownloadURL();
+      const storageRef = ref(storage, `stupas/${stupaId}/${Date.now()}.mp4`);
+      const response = await fetch(videoUri);
+      const blob = await response.blob();
+      await uploadBytes(storageRef, blob);
+      return await getDownloadURL(storageRef);
     } catch (error) {
       console.error('Error uploading video:', error);
       throw new Error('Failed to upload video');
@@ -70,17 +111,26 @@ class StupaService {
 
   async updateStupa(stupaId: string, data: Partial<Stupa>): Promise<void> {
     try {
-      await firestore()
-        .collection('stupas')
-        .doc(stupaId)
-        .update({
-          ...data,
-          updatedAt: new Date().toISOString(),
-        });
+      const stupaRef = doc(firestore, 'stupas', stupaId);
+      await updateDoc(stupaRef, {
+        ...data,
+        updatedAt: new Date().toISOString(),
+      });
     } catch (error) {
       console.error('Error updating stupa:', error);
       throw new Error('Failed to update stupa');
     }
+  }
+
+  subscribeToStupa(stupaId: string, callback: (stupa: Stupa | null) => void) {
+    const stupaRef = doc(firestore, 'stupas', stupaId);
+    return onSnapshot(stupaRef, (doc) => {
+      if (doc.exists()) {
+        callback({ id: doc.id, ...doc.data() } as Stupa);
+      } else {
+        callback(null);
+      }
+    });
   }
 
   async syncWithOSM(bbox: number[]): Promise<void> {
