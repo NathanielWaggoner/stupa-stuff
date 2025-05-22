@@ -20,7 +20,9 @@ export default function AddStupaScreen() {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Videos,
         allowsEditing: true,
-        quality: 1,
+        quality: 0.5,
+        videoMaxDuration: 60,
+        videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality,
       });
 
       if (!result.canceled) {
@@ -32,24 +34,6 @@ export default function AddStupaScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!user) {
-      Alert.alert(
-        'Login Required',
-        'You must be logged in to add a stupa.',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Login',
-            onPress: () => router.push('/login'),
-          },
-        ]
-      );
-      return;
-    }
-
     if (!title.trim()) {
       Alert.alert('Error', 'Please enter a title for the stupa.');
       return;
@@ -69,8 +53,8 @@ export default function AddStupaScreen() {
           latitude: parseFloat(latitude),
           longitude: parseFloat(longitude),
         },
-        createdBy: user.uid,
-        isPublic,
+        createdBy: user?.uid || 'anonymous',
+        isPublic: true,
         videoUrls: [],
         prayerCount: 0,
         createdAt: new Date().toISOString(),
@@ -78,10 +62,14 @@ export default function AddStupaScreen() {
       });
 
       if (videoUri) {
-        const videoUrl = await stupaService.uploadStupaVideo(stupa.id, videoUri);
-        await stupaService.updateStupa(stupa.id, {
-          videoUrls: [videoUrl],
-        });
+        try {
+          const videoUrl = await stupaService.uploadStupaVideo(stupa.id, videoUri);
+          await stupaService.updateStupa(stupa.id, {
+            videoUrls: [videoUrl],
+          });
+        } catch (error) {
+          console.error('Error uploading video:', error);
+        }
       }
 
       Alert.alert('Success', 'Stupa added successfully!', [

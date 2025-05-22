@@ -58,26 +58,44 @@ class StupaService {
       region.latitude + region.latitudeDelta,
     ];
 
+    // Only log when region changes significantly
+    console.log('Region changed:', {
+      latitude: region.latitude.toFixed(4),
+      longitude: region.longitude.toFixed(4),
+    });
+
     const stupasRef = collection(firestore, 'stupas');
-    const q = query(
-      stupasRef,
-      where('location.latitude', '>=', bbox[1]),
-      where('location.latitude', '<=', bbox[3])
-    );
+    const q = query(stupasRef);
 
     return onSnapshot(q, (snapshot) => {
       const stupas = snapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data() } as Stupa))
-        .filter(stupa => 
-          stupa.location.longitude >= bbox[0] && 
-          stupa.location.longitude <= bbox[2]
-        );
+        .filter(stupa => {
+          const inBounds = 
+            stupa.location.latitude >= bbox[1] &&
+            stupa.location.latitude <= bbox[3] &&
+            stupa.location.longitude >= bbox[0] &&
+            stupa.location.longitude <= bbox[2];
+          
+          return inBounds;
+        });
+
+      // Only log when the number of stupas changes
+      if (stupas.length > 0) {
+        console.log('Found', stupas.length, 'stupas in current region');
+      }
+      
       callback(stupas);
     });
   }
 
   async addStupa(stupa: Omit<Stupa, 'id'>): Promise<Stupa> {
     try {
+      console.log('Adding stupa with data:', {
+        ...stupa,
+        location: new GeoPoint(stupa.location.latitude, stupa.location.longitude),
+      });
+
       const docRef = await addDoc(collection(firestore, 'stupas'), {
         ...stupa,
         location: new GeoPoint(stupa.location.latitude, stupa.location.longitude),
@@ -86,6 +104,7 @@ class StupaService {
         lastPrayerAt: new Date().toISOString(),
       });
 
+      console.log('Stupa added with ID:', docRef.id);
       return {
         id: docRef.id,
         ...stupa,

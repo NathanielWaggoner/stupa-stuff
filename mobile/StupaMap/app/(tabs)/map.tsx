@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import MapView, { Region, Marker, Callout } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -15,6 +15,7 @@ const MapScreen = () => {
     longitudeDelta: 0.0421,
   });
   const [stupas, setStupas] = useState<Stupa[]>([]);
+  const [isMoving, setIsMoving] = useState(false);
 
   useEffect(() => {
     // Request location permissions
@@ -42,9 +43,22 @@ const MapScreen = () => {
     return () => unsubscribe();
   }, [region]);
 
-  const handleRegionChange = (newRegion: Region) => {
-    setRegion(newRegion);
-  };
+  const handleRegionChange = useCallback((newRegion: Region) => {
+    setIsMoving(true);
+  }, []);
+
+  const handleRegionChangeComplete = useCallback((newRegion: Region) => {
+    setIsMoving(false);
+    // Only update if the region has actually changed
+    if (
+      Math.abs(newRegion.latitude - region.latitude) > 0.002 ||
+      Math.abs(newRegion.longitude - region.longitude) > 0.002 ||
+      Math.abs(newRegion.latitudeDelta - region.latitudeDelta) > 0.002 ||
+      Math.abs(newRegion.longitudeDelta - region.longitudeDelta) > 0.002
+    ) {
+      setRegion(newRegion);
+    }
+  }, [region]);
 
   const handleMarkerPress = (stupa: Stupa) => {
     router.push({
@@ -69,7 +83,8 @@ const MapScreen = () => {
       <MapView
         style={styles.map}
         region={region}
-        onRegionChangeComplete={handleRegionChange}
+        onRegionChange={handleRegionChange}
+        onRegionChangeComplete={handleRegionChangeComplete}
         onLongPress={handleMapLongPress}
         showsUserLocation
         showsMyLocationButton
