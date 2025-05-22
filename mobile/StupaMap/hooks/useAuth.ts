@@ -1,30 +1,38 @@
 import { useState, useEffect } from 'react';
-import { auth } from '@/services/firebase';
-import { User } from '@/services/auth.service';
-import { getDoc, doc } from 'firebase/firestore';
-import { firestore } from '@/services/firebase';
+import { User } from 'firebase/auth';
+import { authService } from '@/services/auth.service';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
-      if (firebaseUser) {
-        const userDoc = await getDoc(doc(firestore, 'users', firebaseUser.uid));
-        const userData = userDoc.data() as Omit<User, 'id'>;
-        setUser({
-          id: firebaseUser.uid,
-          ...userData,
-        });
-      } else {
-        setUser(null);
-      }
+    const unsubscribe = authService.onAuthStateChanged((user) => {
+      setUser(user);
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  return { user, loading };
+  const signIn = (user: User) => {
+    setUser(user);
+  };
+
+  const signOut = async () => {
+    try {
+      await authService.signOut();
+      setUser(null);
+    } catch (error) {
+      console.error('Sign out error:', error);
+      throw error;
+    }
+  };
+
+  return {
+    user,
+    loading,
+    signIn,
+    signOut,
+  };
 } 

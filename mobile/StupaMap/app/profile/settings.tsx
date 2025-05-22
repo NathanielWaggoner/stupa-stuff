@@ -47,7 +47,7 @@ export default function ProfileSettingsScreen() {
             setLoading(true);
             try {
               await authService.deleteAccount(password);
-              router.replace('/login');
+              router.replace('/(auth)/sign-in');
             } catch (error: any) {
               Alert.alert('Error', error.message || 'Failed to delete account');
             } finally {

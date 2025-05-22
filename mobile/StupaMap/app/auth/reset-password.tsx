@@ -19,7 +19,7 @@ export default function ResetPasswordScreen() {
       Alert.alert(
         'Success',
         'Password reset email sent. Please check your inbox.',
-        [{ text: 'OK', onPress: () => router.back() }]
+        [{ text: 'OK', onPress: () => router.push('/(auth)/sign-in') }]
       );
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to send reset email');

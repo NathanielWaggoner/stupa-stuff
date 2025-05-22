@@ -31,7 +31,7 @@ export default function StupaDetailsScreen() {
 
   const handleOfferPrayer = async () => {
     if (!stupa || !user) {
-      router.push('/login');
+      router.push('/(auth)/sign-in');
       return;
     }
 
