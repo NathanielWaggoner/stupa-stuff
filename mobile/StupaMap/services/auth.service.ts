@@ -6,7 +6,11 @@ import {
   sendPasswordResetEmail,
   updateProfile,
   onAuthStateChanged,
-  User as FirebaseUser
+  User as FirebaseUser,
+  sendEmailVerification,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  deleteUser
 } from 'firebase/auth';
 import { doc, setDoc, updateDoc, getDoc, collection } from 'firebase/firestore';
 
@@ -17,6 +21,7 @@ export interface User {
   photoURL: string | null;
   createdAt: Date;
   lastLoginAt: Date;
+  emailVerified: boolean;
 }
 
 class AuthService {
@@ -28,6 +33,9 @@ class AuthService {
       // Update display name
       await updateProfile(user, { displayName });
 
+      // Send verification email
+      await sendEmailVerification(user);
+
       // Create user document in Firestore
       const userData: Omit<User, 'id'> = {
         email: user.email!,
@@ -35,6 +43,7 @@ class AuthService {
         photoURL: user.photoURL,
         createdAt: new Date(),
         lastLoginAt: new Date(),
+        emailVerified: user.emailVerified
       };
 
       await setDoc(doc(firestore, 'users', user.uid), userData);
@@ -55,6 +64,7 @@ class AuthService {
       // Update last login time
       await updateDoc(doc(firestore, 'users', user.uid), {
         lastLoginAt: new Date(),
+        emailVerified: user.emailVerified
       });
 
       const userDoc = await getDoc(doc(firestore, 'users', user.uid));
@@ -80,6 +90,33 @@ class AuthService {
   async resetPassword(email: string): Promise<void> {
     try {
       await sendPasswordResetEmail(auth, email);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async sendEmailVerification(): Promise<void> {
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error('No user is currently signed in');
+      await sendEmailVerification(user);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async deleteAccount(password: string): Promise<void> {
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error('No user is currently signed in');
+      if (!user.email) throw new Error('User has no email address');
+
+      // Reauthenticate user before deletion
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
+
+      // Delete user document from Firestore
+      await deleteUser(user);
     } catch (error) {
       throw this.handleError(error);
     }

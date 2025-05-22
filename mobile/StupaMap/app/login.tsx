@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import { auth } from '@/services/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { authService } from '@/services/auth.service';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -20,12 +19,46 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        Alert.alert('Success', 'Account created successfully!');
+        const user = await authService.signUp(email, password, email.split('@')[0]);
+        if (!user.emailVerified) {
+          await authService.sendEmailVerification();
+          Alert.alert(
+            'Verification Email Sent',
+            'Please check your email to verify your account before logging in.'
+          );
+          setIsSignUp(false);
+        } else {
+          Alert.alert('Success', 'Account created successfully!');
+          router.back();
+        }
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        const user = await authService.signIn(email, password);
+        if (!user.emailVerified) {
+          Alert.alert(
+            'Email Not Verified',
+            'Please verify your email before logging in. Would you like us to send another verification email?',
+            [
+              {
+                text: 'Cancel',
+                style: 'cancel'
+              },
+              {
+                text: 'Send Email',
+                onPress: async () => {
+                  try {
+                    await authService.sendEmailVerification();
+                    Alert.alert('Success', 'Verification email sent!');
+                  } catch (error: any) {
+                    Alert.alert('Error', error.message || 'Failed to send verification email');
+                  }
+                }
+              }
+            ]
+          );
+        } else {
+          router.back();
+        }
       }
-      router.back();
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Authentication failed');
     } finally {
@@ -69,6 +102,15 @@ export default function LoginScreen() {
           )}
         </TouchableOpacity>
 
+        {!isSignUp && (
+          <TouchableOpacity
+            style={styles.linkButton}
+            onPress={() => router.push('/auth/reset-password')}
+          >
+            <Text style={styles.linkButtonText}>Forgot Password?</Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           style={styles.switchButton}
           onPress={() => setIsSignUp(!isSignUp)}
@@ -104,16 +146,17 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: '#ddd',
+    padding: 15,
     borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
+    marginBottom: 15,
     fontSize: 16,
   },
   button: {
     backgroundColor: '#FF4B4B',
-    padding: 16,
+    padding: 15,
     borderRadius: 8,
     alignItems: 'center',
+    marginBottom: 15,
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -123,13 +166,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  linkButton: {
+    padding: 10,
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  linkButtonText: {
+    color: '#FF4B4B',
+    fontSize: 16,
+  },
   switchButton: {
-    marginTop: 16,
-    padding: 12,
+    padding: 15,
+    alignItems: 'center',
   },
   switchButtonText: {
-    color: '#FF4B4B',
-    textAlign: 'center',
-    fontSize: 14,
+    color: '#666',
+    fontSize: 16,
   },
 }); 

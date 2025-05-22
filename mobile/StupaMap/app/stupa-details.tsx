@@ -4,6 +4,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import { Video } from 'expo-av';
 import { stupaService } from '@/services/stupa.service';
+import { prayerService } from '@/services/prayer.service';
 import { Stupa } from '@/store/slices/stupaSlice';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -11,6 +12,7 @@ export default function StupaDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [stupa, setStupa] = useState<Stupa | null>(null);
   const [loading, setLoading] = useState(true);
+  const [prayerLoading, setPrayerLoading] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -28,15 +30,18 @@ export default function StupaDetailsScreen() {
   }, [id]);
 
   const handleOfferPrayer = async () => {
-    if (!stupa || !user) return;
+    if (!stupa || !user) {
+      router.push('/login');
+      return;
+    }
 
+    setPrayerLoading(true);
     try {
-      await stupaService.updateStupa(stupa.id, {
-        prayerCount: (stupa.prayerCount || 0) + 1,
-        lastPrayerAt: new Date().toISOString(),
-      });
+      await prayerService.addPrayer(stupa.id, '', false);
     } catch (error) {
       console.error('Error offering prayer:', error);
+    } finally {
+      setPrayerLoading(false);
     }
   };
 
@@ -68,11 +73,11 @@ export default function StupaDetailsScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{stupa.title}</Text>
-        {user?.uid === stupa.createdBy && (
+        {/* {user?.uid === stupa.createdBy && ( */}
           <TouchableOpacity onPress={handleEdit} style={styles.editButton}>
             <FontAwesome name="edit" size={20} color="#666" />
           </TouchableOpacity>
-        )}
+        {/* )} */}
       </View>
 
       <Text style={styles.description}>{stupa.description}</Text>
@@ -93,12 +98,19 @@ export default function StupaDetailsScreen() {
           {stupa.prayerCount || 0} prayers offered
         </Text>
         <TouchableOpacity
-          style={styles.prayerButton}
+          style={[styles.prayerButton, prayerLoading && styles.prayerButtonDisabled]}
           onPress={handleOfferPrayer}
-          disabled={!user}
+          disabled={prayerLoading}
+          activeOpacity={0.7}
         >
-          <FontAwesome name="heart" size={24} color="#FF4B4B" />
-          <Text style={styles.prayerButtonText}>Offer Prayer</Text>
+          {prayerLoading ? (
+            <ActivityIndicator size="small" color="#FF4B4B" />
+          ) : (
+            <>
+              <FontAwesome name="heart" size={24} color="#FF4B4B" />
+              <Text style={styles.prayerButtonText}>Offer Prayer</Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -189,16 +201,25 @@ const styles = StyleSheet.create({
   prayerButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#fff',
-    padding: 12,
+    padding: 16,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#FF4B4B',
+    minHeight: 56,
+    minWidth: 200,
+    marginVertical: 8,
   },
   prayerButtonText: {
     marginLeft: 8,
     fontSize: 16,
+    fontWeight: '600',
     color: '#FF4B4B',
+  },
+  prayerButtonDisabled: {
+    opacity: 0.5,
+    backgroundColor: '#f5f5f5',
   },
   locationSection: {
     padding: 16,
