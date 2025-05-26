@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import { Video } from 'expo-av';
+import { ResizeMode } from 'expo-av';
 import { stupaService } from '@/services/stupa.service';
 import { prayerService } from '@/services/prayer.service';
 import { Stupa } from '@/store/slices/stupaSlice';
 import { useAuth } from '@/hooks/useAuth';
+import { CachedVideo } from '@/components/video/CachedVideo';
 
 export default function StupaDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -84,11 +85,11 @@ export default function StupaDetailsScreen() {
 
       {stupa.videoUrls && stupa.videoUrls.length > 0 && (
         <View style={styles.videoContainer}>
-          <Video
+          <CachedVideo
             source={{ uri: stupa.videoUrls[0] }}
             style={styles.video}
             useNativeControls
-            resizeMode="contain"
+            resizeMode={ResizeMode.CONTAIN}
           />
         </View>
       )}
