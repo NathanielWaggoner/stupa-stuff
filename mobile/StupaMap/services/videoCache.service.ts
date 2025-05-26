@@ -63,7 +63,6 @@ class VideoCacheService {
 
   async getCachedVideoUri(url: string): Promise<string | null> {
     try {
-        console.log('url', url);
         const cacheKey = this.getCacheKey(url); // e.g. 'video-cache/stupas/abc/123.mp4'
         const cachePath = `${this.cacheDirectory}${cacheKey}`;
         const stupaKey = url.split('%2F')[1];
@@ -97,7 +96,6 @@ class VideoCacheService {
       if (!folderInfo.exists) {
         await FileSystem.makeDirectoryAsync(folderPath, { intermediates: true });
       }
-      console.log('folderInfo', folderInfo);
   
       // Check if already cached
       const fileInfo = await FileSystem.getInfoAsync(cachePath);

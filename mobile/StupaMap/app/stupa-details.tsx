@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator, FlatList } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import { ResizeMode } from 'expo-av';
@@ -8,6 +8,7 @@ import { prayerService } from '@/services/prayer.service';
 import { Stupa } from '@/store/slices/stupaSlice';
 import { useAuth } from '@/hooks/useAuth';
 import { CachedVideo } from '@/components/video/CachedVideo';
+import { CachedPhoto } from '@/components/photo/CachedPhoto';
 
 export default function StupaDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -90,6 +91,32 @@ export default function StupaDetailsScreen() {
             style={styles.video}
             useNativeControls
             resizeMode={ResizeMode.CONTAIN}
+          />
+        </View>
+      )}
+
+      {stupa.photoUrls && stupa.photoUrls.length > 0 && (
+        <View style={styles.photoSection}>
+          <Text style={styles.sectionTitle}>Photo Gallery</Text>
+          <FlatList
+            data={stupa.photoUrls}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.photoContainer}
+                onPress={() => {
+                  // TODO: Implement photo viewer
+                }}
+              >
+                <CachedPhoto
+                  source={{ uri: item }}
+                  style={styles.photo}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+            )}
           />
         </View>
       )}
@@ -188,6 +215,28 @@ const styles = StyleSheet.create({
   video: {
     flex: 1,
   },
+  photoSection: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#eee',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  photoContainer: {
+    width: 200,
+    height: 200,
+    marginRight: 12,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  photo: {
+    width: '100%',
+    height: '100%',
+  },
   prayerSection: {
     padding: 16,
     borderTopWidth: 1,
@@ -226,11 +275,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
   },
   locationText: {
     fontSize: 14,

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, View, Text, TextInput, ScrollView, TouchableOpacity, ActivityIndicator, Alert, FlatList, Image } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { stupaService } from '@/services/stupa.service';
+import { photoService } from '@/services/photo.service';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function AddStupaScreen() {
@@ -13,6 +14,7 @@ export default function AddStupaScreen() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [videoUri, setVideoUri] = useState<string | null>(null);
+  const [photoUris, setPhotoUris] = useState<string[]>([]);
   const [isPublic, setIsPublic] = useState(true);
 
   const handlePickVideo = async () => {
@@ -31,6 +33,28 @@ export default function AddStupaScreen() {
     } catch (error) {
       Alert.alert('Error', 'Failed to pick video. Please try again.');
     }
+  };
+
+  const handlePickPhotos = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.8,
+        allowsMultipleSelection: true,
+        selectionLimit: 10,
+      });
+
+      if (!result.canceled) {
+        setPhotoUris([...photoUris, ...result.assets.map(asset => asset.uri)]);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to pick photos. Please try again.');
+    }
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setPhotoUris(photoUris.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -56,11 +80,13 @@ export default function AddStupaScreen() {
         createdBy: user?.uid || 'anonymous',
         isPublic: true,
         videoUrls: [],
+        photoUrls: [],
         prayerCount: 0,
         createdAt: new Date().toISOString(),
         lastPrayerAt: new Date().toISOString(),
       });
 
+      // Upload video if selected
       if (videoUri) {
         try {
           const videoUrl = await stupaService.uploadStupaVideo(stupa.id, videoUri);
@@ -69,6 +95,20 @@ export default function AddStupaScreen() {
           });
         } catch (error) {
           console.error('Error uploading video:', error);
+        }
+      }
+
+      // Upload photos if selected
+      if (photoUris.length > 0) {
+        try {
+          const photoUrls = await Promise.all(
+            photoUris.map(uri => photoService.uploadStupaPhoto(stupa.id, uri))
+          );
+          await stupaService.updateStupa(stupa.id, {
+            photoUrls,
+          });
+        } catch (error) {
+          console.error('Error uploading photos:', error);
         }
       }
 
@@ -120,14 +160,44 @@ export default function AddStupaScreen() {
         </View>
 
         <TouchableOpacity
-          style={styles.videoButton}
+          style={styles.mediaButton}
           onPress={handlePickVideo}
         >
           <FontAwesome name="video-camera" size={20} color="#666" />
-          <Text style={styles.videoButtonText}>
+          <Text style={styles.mediaButtonText}>
             {videoUri ? 'Change Video' : 'Add Video'}
           </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.mediaButton}
+          onPress={handlePickPhotos}
+        >
+          <FontAwesome name="camera" size={20} color="#666" />
+          <Text style={styles.mediaButtonText}>
+            Add Photos ({photoUris.length}/10)
+          </Text>
+        </TouchableOpacity>
+
+        {photoUris.length > 0 && (
+          <FlatList
+            data={photoUris}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item, index }) => (
+              <View style={styles.photoPreviewContainer}>
+                <Image source={{ uri: item }} style={styles.photoPreview} />
+                <TouchableOpacity
+                  style={styles.removePhotoButton}
+                  onPress={() => handleRemovePhoto(index)}
+                >
+                  <FontAwesome name="times-circle" size={24} color="#FF4B4B" />
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+        )}
 
         <TouchableOpacity
           style={styles.visibilityButton}
@@ -144,12 +214,12 @@ export default function AddStupaScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.submitButton, (!title || !description) && styles.submitButtonDisabled]}
+          style={[styles.submitButton, loading && styles.submitButtonDisabled]}
           onPress={handleSubmit}
-          disabled={loading || !title || !description}
+          disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator size="small" color="#fff" />
           ) : (
             <>
               <FontAwesome name="plus" size={20} color="#fff" />
@@ -199,7 +269,7 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 4,
   },
-  videoButton: {
+  mediaButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
@@ -207,10 +277,29 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
   },
-  videoButtonText: {
+  mediaButtonText: {
     marginLeft: 8,
     fontSize: 16,
     color: '#666',
+  },
+  photoPreviewContainer: {
+    width: 100,
+    height: 100,
+    marginRight: 12,
+    marginBottom: 16,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  photoPreview: {
+    width: '100%',
+    height: '100%',
+  },
+  removePhotoButton: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: '#fff',
+    borderRadius: 12,
   },
   visibilityButton: {
     flexDirection: 'row',

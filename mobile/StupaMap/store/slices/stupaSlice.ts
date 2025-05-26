@@ -13,6 +13,7 @@ export interface Stupa {
   createdAt: string;
   isPublic: boolean;
   videoUrls: string[];
+  photoUrls: string[];
   prayerCount: number;
   lastPrayerAt: string;
   osmId?: string;
