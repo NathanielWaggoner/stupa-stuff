@@ -20,7 +20,7 @@
         "NSLocationAlwaysUsageDescription": "StupaMap needs access to location to show nearby stupas and your current location on the map.",
         "UIBackgroundModes": ["location"]
       },
-      "googleServicesFile": "./GoogleService-Info.plist"
+      "googleServicesFile": "./ios/GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {

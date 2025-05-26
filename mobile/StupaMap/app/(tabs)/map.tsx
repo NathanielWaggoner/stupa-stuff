@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import { stupaService } from '@/services/stupa.service';
 import { Stupa } from '@/store/slices/stupaSlice';
+import { StupaMarker } from '@/components/map/StupaMarker';
 
 const MapScreen = () => {
   const [region, setRegion] = useState<Region>({
@@ -98,7 +99,7 @@ const MapScreen = () => {
             }}
             onPress={() => handleMarkerPress(stupa)}
           >
-            <FontAwesome name="map-marker" size={36} color="#FF4B4B" />
+            <StupaMarker color="#FFD700" />
             <Callout>
               <View style={styles.callout}>
                 <Text style={styles.calloutTitle}>{stupa.title}</Text>

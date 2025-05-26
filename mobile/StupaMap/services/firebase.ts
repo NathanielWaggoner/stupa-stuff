@@ -1,6 +1,6 @@
 import { initializeApp } from '@firebase/app';
 import { getAuth, GoogleAuthProvider } from '@firebase/auth';
-import { getFirestore, enableIndexedDbPersistence } from '@firebase/firestore';
+import { getFirestore, initializeFirestore } from '@firebase/firestore';
 import { getStorage } from '@firebase/storage';
 
 // Initialize Firebase
@@ -23,22 +23,27 @@ console.log('Firebase Config Status:', {
   hasAppId: !!firebaseConfig.appId,
 });
 
+console.log('Firebase Config:', firebaseConfig);
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
 // Initialize services
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
-const firestore = getFirestore(app);
+// const firestore = initializeFirestore(app, {
+//   experimentalForceLongPolling: true,
+//   cacheSizeBytes: 50 * 1024 * 1024, // 50 MB cache size
+// }, 'default');
+const firestore = getFirestore(app, '(default)');
 const storage = getStorage(app);
 
-// Enable Firestore offline persistence
-enableIndexedDbPersistence(firestore).catch((err) => {
-  if (err.code === 'failed-precondition') {
-    console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
-  } else if (err.code === 'unimplemented') {
-    console.warn('The current browser does not support persistence.');
-  }
-});
+// // Enable Firestore offline persistence
+// enableIndexedDbPersistence(firestore).catch((err) => {
+//   if (err.code === 'failed-precondition') {
+//     console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+//   } else if (err.code === 'unimplemented') {
+//     console.warn('The current browser does not support persistence.');
+//   }
+// });
 
 export { app, auth, googleProvider, firestore, storage }; 

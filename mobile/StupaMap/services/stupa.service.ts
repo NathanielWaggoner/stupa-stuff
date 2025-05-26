@@ -118,6 +118,8 @@ class StupaService {
   async uploadStupaVideo(stupaId: string, videoUri: string): Promise<string> {
     try {
       const storageRef = ref(storage, `stupas/${stupaId}/${Date.now()}.mp4`);
+      console.log('stupaId', stupaId);
+      console.log('Uploading video to:', storageRef.fullPath);
       const response = await fetch(videoUri);
       const blob = await response.blob();
       await uploadBytes(storageRef, blob);
