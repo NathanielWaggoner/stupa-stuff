@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Image, StyleSheet, ActivityIndicator, NativeSyntheticEvent, ImageErrorEventData } from 'react-native';
 import { photoService } from '@/services/photo.service';
+import { PhotoViewer } from './PhotoViewer';
 
 interface CachedPhotoProps {
   source: { uri: string };
@@ -82,11 +83,10 @@ export function CachedPhoto({
   }
 
   return (
-    <Image
-      source={{ uri: photoUri }}
+    <PhotoViewer
+      imageUrl={photoUri}
       style={[styles.photo, style]}
       resizeMode={resizeMode}
-      onError={onError}
     />
   );
 }

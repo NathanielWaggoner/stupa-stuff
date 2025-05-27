@@ -19,20 +19,32 @@
 - Prayer reporting system
 - Prayer analytics dashboard
 
-## 2. Video Features
+## 2. Media Features
 ### Implemented ✅
-- Video upload capability
-- Basic video playback using expo-av
-- Video storage through stupaService
-- Video thumbnail display
+- Video playback with caching
+- Photo gallery with caching
+- Photo compression and optimization
+  - Automatic resizing to 1920x1920 max
+  - JPEG compression with configurable quality
+  - PNG support with lossless compression
+  - Configurable compression options
+- Unified media service architecture
+  - Base media service for shared functionality
+  - Specialized services for photos and videos
+  - Consistent caching and upload patterns
+  - Type-safe media handling
+- Photo viewer with zoom and pan
+  - Full-screen photo viewing
+  - Double-tap to zoom
+  - Swipe to close
+  - Smooth transitions
 
-### Remaining ⏳
-- Video quality selection
-- Video compression/optimization
-- Multiple video support per stupa
-- Video playback controls customization
-- Video caching for offline viewing
-- Video moderation system
+### Remaining Tasks
+- [ ] Add photo editing capabilities
+- [ ] Implement video compression
+- [ ] Add media deletion functionality
+- [ ] Implement media backup/restore
+- [ ] Add media sharing features
 
 ## 3. User Authentication
 ### Implemented ✅

@@ -102,7 +102,7 @@ export default function AddStupaScreen() {
       if (photoUris.length > 0) {
         try {
           const photoUrls = await Promise.all(
-            photoUris.map(uri => photoService.uploadStupaPhoto(stupa.id, uri))
+            photoUris.map(uri => photoService.uploadStupaPhoto(stupa.id, uri, { maxWidth: 1920, maxHeight: 1920, quality: 0.8 }))
           );
           await stupaService.updateStupa(stupa.id, {
             photoUrls,

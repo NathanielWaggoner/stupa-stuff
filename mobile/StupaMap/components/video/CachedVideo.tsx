@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
-import { videoCacheService } from '@/services/videoCache.service';
+import { videoService } from '@/services/video.service';
 
 interface CachedVideoProps {
   source: { uri: string };
@@ -9,7 +9,7 @@ interface CachedVideoProps {
   resizeMode?: ResizeMode;
   useNativeControls?: boolean;
   onLoad?: () => void;
-  onError?: (error: any) => void;
+  onError?: (error: Error) => void;
 }
 
 export function CachedVideo({
@@ -33,10 +33,9 @@ export function CachedVideo({
         setError(null);
 
         // Try to get cached video first
-        const cachedUri = await videoCacheService.getCachedVideoUri(source.uri);
+        const cachedUri = await videoService.getCachedVideoUri(source.uri);
         
         if (cachedUri) {
-          console.log('cachedUri', cachedUri);
           if (mounted) {
             setVideoUri(cachedUri);
             setLoading(false);
@@ -46,7 +45,7 @@ export function CachedVideo({
         }
 
         // If not cached, download and cache it
-        const newCachedUri = await videoCacheService.cacheVideo(source.uri);
+        const newCachedUri = await videoService.cacheVideo(source.uri);
         
         if (mounted) {
           setVideoUri(newCachedUri);
@@ -57,7 +56,7 @@ export function CachedVideo({
         if (mounted) {
           setError(err as Error);
           setLoading(false);
-          onError?.(err);
+          onError?.(err as Error);
         }
       }
     };
@@ -91,7 +90,7 @@ export function CachedVideo({
       style={[styles.video, style]}
       resizeMode={resizeMode}
       useNativeControls={useNativeControls}
-      onError={onError}
+      onError={(error) => onError?.(new Error(error))}
     />
   );
 }
